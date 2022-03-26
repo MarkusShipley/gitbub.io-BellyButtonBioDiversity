@@ -1,5 +1,6 @@
 // Function that populates the dropdown
-function populateDropdown(){
+//Select #dataset is used because it is referred to as that on line 26 of the html
+function Dropdown(){
     var select = d3.select("#selDataset");
 
     d3.json('samples.json').then((data) => {
@@ -16,8 +17,9 @@ function populateDropdown(){
     });
 
     // initiate Graphs
-    demInfo('940');
-    buildGraph('940');
+    // note: as covered in Phil's study hall on 3/23/22, you can call a fucntion that is built later in the JS
+    demoGraphicInfo('940');
+    graphBuilder('940');
     
 }
 
@@ -29,18 +31,24 @@ function optionChanged(idNumber){
     
     // call the funcions
     // note: as cpvered in Phil's study hall on 3/23/22, you can call a fucntion that is built later in the JS
-     demInfo(idNumber);
-    buildGraph(idNumber);
+     demoGraphicInfo(idNumber);
+     graphBuilder(idNumber);
 
 }
 
 
 // demographic info fuction
-function demInfo (idNumber) {
+function demoGraphicInfo (idNumber) {
     // d3 select of the metadata div
-    var demList = d3.select("#sample-metadata");
+    // demoGraphList not declared until line 60
+    // #samples-metadata was used because it is reference in line 32 of the index.html
+    var demoGraphicList = d3.select("#sample-metadata");
 
     // importing the JSON with d3
+    // => are not just shorter or easier ways of declaring functions
+    //Phil covered this is study hall so I took a stab at seeing if I could get it to work
+    //https://www.w3schools.com/js/js_arrow_function.asp
+
     d3.json('samples.json').then((data) => {
         // getting the metadata
         var metadata = data.metadata;
@@ -51,12 +59,14 @@ function demInfo (idNumber) {
         // getting the filtered data
         filtered = filtered[0];
 
-        // clearing out any existing data
-        demList.html("");
+        // making certain the deomGraphicList is cleared out
+        //probably not neded for our homework purposes but in real life, I would want to make sure nothing remained if i updated datasets.
+        demoGraphicList.html("");
 
-        // iteraing throught the object and appending the 
+        // iteraing throught the object and appending the deomGraphicList
+        //This is repopulating the "clear" we made in lines 59 - 61 
         Object.entries(filtered).forEach(([key,value]) => {
-            demList.append("h6").text(`${key} : ${value}`);
+            demoGraphicList.append("h6").text(`${key} : ${value}`);
         });
 
     });
@@ -65,24 +75,28 @@ function demInfo (idNumber) {
 }
 
 // A funtion was created that will build the graphs 
-function buildGraph (idNumber) {
+// First part is declaring variables and setting values so that they can be used when the graphs are generated
+function graphBuilder (idNumber) {
     // filter through the samples
     d3.json('samples.json').then((data) => {
         // getting the metadata
         var sampleData = data.samples;
 
         // filtering metadata along the idNumber
+        //https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/filter
+        // lveraging filtering fucntion to get the labels, sample values and ids.
         var filtered = sampleData.filter(d => d.id == idNumber);
-
-        // getting the labels, sample values and ids vut usimg he filter function
+       
+        //Once the filtered var is declared and values set to it, the var can be user with the setting of the other vars
         var otuIds = filtered[0]['otu_ids'];
         var sampleValues = filtered[0]['sample_values']
         var otuLabels = filtered[0]['otu_labels']
-    
-       
+        
 
-        // Create tje horixontal Bar Chart
-        //data must me siced and tjhen invesred chosen to get the top ten by belly button
+        // Create the horixontal Bar Chart
+        //data must me siced and then the invesred chosen to get the top ten by belly button
+        //to present in the chart propertly
+        //sampleVlues amd otuIDs and otuLabels are vars declared in line 90 - 92
         var barTrace = {
             x: sampleValues.slice(0,10).reverse(),
             y: otuIds.map(otu_ids => `OTU ${otu_ids}`).slice(0,10).reverse(),
@@ -102,10 +116,12 @@ function buildGraph (idNumber) {
             yaxis: {title: "OTU ID's"}
         };
 
+        //used the barData and barLayout vars in the graphBuilder function to pass to the Plotly function to pass paramaters for the graph
         Plotly.newPlot('bar', barData, barLayout);
         
         // Create the Bubble Chart
-        var bubbleTrace = {
+          //used the barData and barLayout vars in the graphBuilder function to pass to the Plotly function to pass paramaters for the bubble trace
+        var bubbletrace = {
             x: otuIds,
             y: sampleValues,
             mode: 'markers',
@@ -117,22 +133,23 @@ function buildGraph (idNumber) {
             }
           };
 
-        var bubbleData = [bubbleTrace];
+        var bubbledata = [bubbletrace];
 
-        var bubbleLayout = {
+        var bubblelayout = {
             title: "Bacteria Counts per Belly Button",
             xaxis: {title: "OTU ID"},
             yaxis: {title: "Sample Values"}
         };
+        //Used the bubbletrace, bubbledata and bubble layout vars to pass the values to Plotly to create the newplots
+        Plotly.newPlot('bubble', bubbledata, bubblelayout)
 
-        Plotly.newPlot('bubble', bubbleData, bubbleLayout)
-
+        //The appraoch with the graphbuilder function was used in anticitpation that it could be re-used and it makes the organization of the required plotly paramters more organizwd
 
     });
 
 }
 
-populateDropdown();
+Dropdown();
 
-//Originially, I attempted to build the the bonus gauge but kust cpoiuld not make it happen.
-//Thus, Bonus kipped for this.
+//Originially, I attempted to build the the bonus gauge but just cpoiuld not make it happen.
+//Thus, Bonus skipped for this.
